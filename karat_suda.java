@@ -18,85 +18,99 @@ class Job {
 
 public class karat_suda {
 
-    public static int max(Job[] jobs, int no) {
-        int max_deadline = 0;
-        for (int i = 0; i < no; i++) {
-            if (jobs[i].deadline > max_deadline) {
-                max_deadline = jobs[i].deadline;
-            }
-        }
-        return max_deadline;
-    }
-
-    public static void main(String[] args) {
+    public static Job[] inputJobs(int no) {
         Scanner sc = new Scanner(System.in);
-        int no;
-
-        System.out.println("Enter number of jobs");
-        no = sc.nextInt();
-
         Job[] jobs = new Job[no];
-        int id;
-        int Profit;
-        int deadline;
-
-        // Taking input
         for (int i = 0; i < no; i++) {
-            System.out.println("Enter id, Profit, deadline of " + (i + 1) + " job");
-            id = sc.nextInt();
-            Profit = sc.nextInt();
-            deadline = sc.nextInt();
+            System.out.println("Enter id, Profit, deadline of job " + (i + 1) + ": ");
+            int id = sc.nextInt();
+            int Profit = sc.nextInt();
+            int deadline = sc.nextInt();
             jobs[i] = new Job(id, Profit, deadline);
         }
+        return jobs;
+    }
 
-        // Sorting the objects based on their profit (bubble sort)
-        for (int i = 0; i < jobs.length - 1; i++) {  // Outer loop runs for n-1 times
-            for (int j = 0; j < jobs.length - i - 1; j++) {  // Inner loop runs for n-i-1 times
-                if (jobs[j].Profit < jobs[j + 1].Profit) {  // Compare profit of adjacent jobs
-                    // Swap jobs if they're in the wrong order
+    public static void sortJobsByProfit(Job[] jobs) {
+        for (int i = 0; i < jobs.length - 1; i++) {
+            for (int j = 0; j < jobs.length - i - 1; j++) {
+                if (jobs[j].Profit < jobs[j + 1].Profit) {
                     Job temp = jobs[j];
                     jobs[j] = jobs[j + 1];
                     jobs[j + 1] = temp;
                 }
             }
         }
+    }
 
-        // Display sorted jobs
-        for (int i = 0; i < no; i++) {
-            jobs[i].display();
+    public static int findMaxDeadline(Job[] jobs) {
+        int max_deadline = 0;
+        for (Job job : jobs) {
+            if (job.deadline > max_deadline) {
+                max_deadline = job.deadline;
+            }
         }
+        return max_deadline;
+    }
 
-        // Find the maximum deadline for slots
-        int max_deadline = max(jobs, no);
+    public static int[] scheduleJobs(Job[] jobs, int max_deadline) {
         int[] slots = new int[max_deadline];
-
-        // Initialize all slots to -1 (empty)
         for (int i = 0; i < max_deadline; i++) {
-            slots[i] = -1;
+            slots[i] = -1; // Initialize slots to -1
         }
 
-        int total_prof = 0;
-
-        // Assign jobs to available slots
-        for (int i = 0; i < no; i++) {
-            // Try to find a slot for the job
-            for (int j = jobs[i].deadline - 1; j >= 0; j--) {
-                if (slots[j] == -1) {  // Check if the slot is available
-                    slots[j] = jobs[i].id;  // Assign the job id to the slot
-                    total_prof += jobs[i].Profit;  // Add the job's profit to the total
-                    break;  // Break the inner loop once the job is assigned
+        for (Job job : jobs) {
+            for (int j = job.deadline - 1; j >= 0; j--) {
+                if (slots[j] == -1) {
+                    slots[j] = job.id; // Assign job id to slot
+                    break;
                 }
             }
         }
+        return slots;
+    }
 
-        // Display the slots
-        System.out.println("Job scheduling result:");
-        for (int i = 0; i < max_deadline; i++) {
-            System.out.print(slots[i] + " ");  // Display job ids in slots
+    public static int calculateTotalProfit(Job[] jobs, int[] slots) {
+        int totalProfit = 0;
+        for (int slot : slots) {
+            if (slot != -1) {
+                for (Job job : jobs) {
+                    if (job.id == slot) {
+                        totalProfit += job.Profit;
+                        break;
+                    }
+                }
+            }
         }
-        System.out.println();
+        return totalProfit;
+    }
 
-        // Display the total profit
-        System.out.println("Total Profit: " + total_prof);
+    public static void displayResults(int[] slots, int totalProfit) {
+        System.out.println("Job scheduling result:");
+        for (int slot : slots) {
+            System.out.print(slot + " ");
+        }
+        System.out.println("\nTotal Profit: " + totalProfit);
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter number of jobs:");
+        int no = sc.nextInt();
+
+        Job[] jobs = inputJobs(no); // Input jobs
+        sortJobsByProfit(jobs);    // Sort jobs by profit
+
+        // Display sorted jobs
+        System.out.println("Sorted jobs by profit:");
+        for (Job job : jobs) {
+            job.display();
+        }
+
+        int max_deadline = findMaxDeadline(jobs); // Find maximum deadline
+        int[] slots = scheduleJobs(jobs, max_deadline); // Schedule jobs
+        int totalProfit = calculateTotalProfit(jobs, slots); // Calculate total profit
+
+        displayResults(slots, totalProfit); // Display results
     }
 }
